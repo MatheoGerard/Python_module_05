@@ -23,3 +23,6 @@ class TextProcessor(DataProcessor):
 
 class LogProcessor(DataProcessor):
 
+
+if __name__ == "__main__":
+    print("je suis le main")
