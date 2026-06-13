@@ -10,3 +10,16 @@ class DataProcessor(ABC):
     @abstractmethod
     def ingest(self, data: typing.Any) -> None:
         pass
+
+    def output() -> tuple[int, str]:
+
+
+class NumericProcessor(DataProcessor):
+    def validate(self, data: typing.Any) -> bool:
+        if type(data) == int or type(data) == float or type(data) == lis
+
+class TextProcessor(DataProcessor):
+
+
+class LogProcessor(DataProcessor):
+
