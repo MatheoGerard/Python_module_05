@@ -106,15 +106,18 @@ if __name__ == "__main__":
     num_value: int | float = 42
     text_value: str = "Hello"
     print(
-        f"Trying to validate input '{num_value}': {num_proc.validate(num_value)}"
+        f"Trying to validate input '{num_value}': "
+        f"{num_proc.validate(num_value)}"
     )
     print(
-        f"Trying to validate input '{text_value}': {num_proc.validate(text_value)}"
+        f"Trying to validate input '{text_value}': "
+        f"{num_proc.validate(text_value)}"
     )
     foo: str = "foo"
     try:
         print(
-            f"Test invalid ingestion of string '{foo}' without prior validation: "
+            f"Test invalid ingestion of string '{foo}' "
+            "without prior validation: "
         )
         num_proc.ingest(foo)
     except TypeError as e:
@@ -133,7 +136,8 @@ if __name__ == "__main__":
     print("Testing Text Processor...")
     text_proc: TextProcessor = TextProcessor()
     print(
-        f"Trying to validate input '{num_value}': {text_proc.validate(num_value)}"
+        f"Trying to validate input '{num_value}': "
+        f"{text_proc.validate(num_value)}"
     )
     data_text_list: list[str] = ["Hello", "Nexus", "World"]
     nb_to_extract = 1
@@ -145,7 +149,8 @@ if __name__ == "__main__":
     print("Testing Log Processor...")
     log_proc: LogProcessor = LogProcessor()
     print(
-        f"Trying to validate input '{text_value}': {log_proc.validate(text_value)}"
+        f"Trying to validate input '{text_value}': "
+        f"{log_proc.validate(text_value)}"
     )
     data_dict_list: list[dict[str, str]] = [
         {"log_level": "NOTICE", "log_message": "Connection to server"},
