@@ -26,3 +26,4 @@ class LogProcessor(DataProcessor):
 
 if __name__ == "__main__":
     print("je suis le main")
+    print("je viens de te rajouter pour tester lazygit")
