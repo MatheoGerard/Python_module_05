@@ -69,6 +69,9 @@ class TextProcessor(DataProcessor):
 
 
 class LogProcessor(DataProcessor):
+    def __init__(self) -> None:
+        super().__init__()
+
     def validate(self, data: typing.Any) -> bool:
         if isinstance(data, dict) and all(
             isinstance(k, str) and isinstance(v, str) for k, v in data.items()
@@ -84,6 +87,15 @@ class LogProcessor(DataProcessor):
             return True
         else:
             return False
+
+    def ingest(self, data: dict[str, str] | list[dict[str, str]]) -> None:
+        if isinstance(data, dict):
+            self.data.append(f"{data['log_level']}: {data['log_message']}")
+        elif isinstance(data, list):
+            for x in data:
+                self.data.append(f"{x['log_level']}: {x['log_message']}")
+        else:
+            raise TypeError("Got exception: Improper numeric data")
 
 
 if __name__ == "__main__":
@@ -130,3 +142,20 @@ if __name__ == "__main__":
     curr_proc_text_value: tuple[int, str] = text_proc.output()
     print(f"Text value {curr_proc_text_value[0]}: {curr_proc_text_value[1]}")
     print()
+    print("Testing Log Processor...")
+    log_proc: LogProcessor = LogProcessor()
+    print(
+        f"Trying to validate input '{text_value}': {log_proc.validate(text_value)}"
+    )
+    data_dict_list: list[dict[str, str]] = [
+        {"log_level": "NOTICE", "log_message": "Connection to server"},
+        {"log_level": "ERROR", "log_message": "Unauthorized access!!"},
+    ]
+    nb_to_extract = 2
+    print(f"Extracting {nb_to_extract} values...")
+    log_proc.ingest(data_dict_list)
+    for _ in range(0, nb_to_extract):
+        curr_proc_log_value: tuple[int, str] = log_proc.output()
+        print(
+            f"Numeric value {curr_proc_log_value[0]}: {curr_proc_log_value[1]}"
+        )
