@@ -139,15 +139,21 @@ class DataStream:
             print("No processor found, no data")
         if self.num_proc:
             print(
-                f"Numeric Processor: total {self.num_proc.total_processed} items processed, remaining {len(self.num_proc.data)} on processor"
+                f"Numeric Processor: total {self.num_proc.total_processed} "
+                f"items processed, remaining {len(self.num_proc.data)} on "
+                "processor"
             )
         if self.text_proc:
             print(
-                f"Numeric Processor: total {self.text_proc.total_processed} items processed, remaining {len(self.text_proc.data)} on processor"
+                f"Text Processor: total {self.text_proc.total_processed} "
+                f"items processed, remaining {len(self.text_proc.data)} on "
+                "processor"
             )
         if self.log_proc:
             print(
-                f"Numeric Processor: total {self.log_proc.total_processed} items processed, remaining {len(self.log_proc.data)} on processor"
+                f"Log Processor: total {self.log_proc.total_processed} "
+                f"items processed, remaining {len(self.log_proc.data)} on "
+                "processor"
             )
 
 
@@ -157,9 +163,12 @@ if __name__ == "__main__":
     print("Initialize Data Stream...")
     data_stream: DataStream = DataStream()
     print("== DataStream statistics ==")
+    data_stream.print_processors_stats()
+    print()
+    print("Registering Numeric Processor")
     num_proc: NumericProcessor = NumericProcessor()
     data_stream.register_processor(num_proc)
-    print("Registering Numeric Processor")
+    print()
     data: list[typing.Any] = [
         "Hello world",
         [3.14, -1, 2.71],
@@ -192,7 +201,8 @@ if __name__ == "__main__":
     consume_text: int = 2
     consume_log: int = 1
     print(
-        f"Consume some elements from the data processors: Numeric {consume_num}, Text {consume_text}, Log {consume_log}"
+        "Consume some elements from the data processors: Numeric "
+        f"{consume_num}, Text {consume_text}, Log {consume_log}"
     )
     for _ in range(0, consume_num):
         num_proc.output()
