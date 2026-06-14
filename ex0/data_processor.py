@@ -3,6 +3,10 @@ import typing
 
 
 class DataProcessor(ABC):
+    def __init__(self) -> None:
+        self.rank: int = 0
+        self.data: list[str] = []
+
     @abstractmethod
     def validate(self, data: typing.Any) -> bool:
         pass
@@ -11,13 +15,16 @@ class DataProcessor(ABC):
     def ingest(self, data: typing.Any) -> None:
         pass
 
-
-#    def output() -> tuple[int, str]:
+    def output(self) -> tuple[int, str]:
+        tuple_to_return: tuple[int, str] = (self.rank, self.data[0])
+        self.data.remove(tuple_to_return[1])
+        self.rank += 1
+        return tuple_to_return
 
 
 class NumericProcessor(DataProcessor):
     def __init__(self) -> None:
-        self.data: list[str] = []
+        super().__init__()
 
     def validate(self, data: typing.Any) -> bool:
         if isinstance(data, (float, int)):
@@ -40,6 +47,9 @@ class NumericProcessor(DataProcessor):
 
 
 class TextProcessor(DataProcessor):
+    def __init__(self) -> None:
+        super().__init__()
+
     def validate(self, data: typing.Any) -> bool:
         if isinstance(data, str):
             return True
@@ -47,6 +57,15 @@ class TextProcessor(DataProcessor):
             return True
         else:
             return False
+
+    def ingest(self, data: str | list[str]) -> None:
+        if isinstance(data, (str)):
+            self.data.append(data)
+        elif isinstance(data, list):
+            for x in data:
+                self.data.append(x)
+        else:
+            raise TypeError("Got exception: Improper numeric data")
 
 
 class LogProcessor(DataProcessor):
@@ -88,3 +107,26 @@ if __name__ == "__main__":
         num_proc.ingest(foo)
     except TypeError as e:
         print(e)
+    data_num_list: list[int | float] = [1, 2, 3, 4, 5]
+    print(f"Processing data: {data_num_list}")
+    nb_to_extract: int = 3
+    print(f"Extracting {nb_to_extract} values...")
+    num_proc.ingest(data_num_list)
+    for _ in range(0, nb_to_extract):
+        curr_proc_num_value: tuple[int, str] = num_proc.output()
+        print(
+            f"Numeric value {curr_proc_num_value[0]}: {curr_proc_num_value[1]}"
+        )
+    print()
+    print("Testing Text Processor...")
+    text_proc: TextProcessor = TextProcessor()
+    print(
+        f"Trying to validate input '{num_value}': {text_proc.validate(num_value)}"
+    )
+    data_text_list: list[str] = ["Hello", "Nexus", "World"]
+    nb_to_extract = 1
+    print(f"Extracting {nb_to_extract} values...")
+    text_proc.ingest(data_text_list)
+    curr_proc_text_value: tuple[int, str] = text_proc.output()
+    print(f"Text value {curr_proc_text_value[0]}: {curr_proc_text_value[1]}")
+    print()
