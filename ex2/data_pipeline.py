@@ -134,6 +134,9 @@ class DataStream:
                     f"DataStream error - Can't process element in stream: {x}"
                 )
 
+    def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
+    #TODO: comportement de cette fonction
+
     def print_processors_stats(self) -> None:
         if not self.num_proc and not self.text_proc and not self.log_proc:
             print("No processor found, no data")
@@ -155,6 +158,12 @@ class DataStream:
                 f"items processed, remaining {len(self.log_proc.data)} on "
                 "processor"
             )
+
+
+class ExportPlugin(typing.Protocol):
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+    #TODO: comportement de cette fonction
+
 
 
 if __name__ == "__main__":
