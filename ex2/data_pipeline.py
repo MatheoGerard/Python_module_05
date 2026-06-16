@@ -76,6 +76,7 @@ class TextProcessor(DataProcessor):
 class LogProcessor(DataProcessor):
     def __init__(self) -> None:
         super().__init__()
+        self.proc = None
 
     def validate(self, data: typing.Any) -> bool:
         if isinstance(data, dict) and all(
@@ -105,11 +106,28 @@ class LogProcessor(DataProcessor):
             raise TypeError("Got exception: Improper numeric data")
 
 
+class ExportPlugin(typing.Protocol):
+    def process_output(self, data: list[tuple[int, str]]) -> None: ...
+
+
+class CSVExport(ExportPlugin):
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+        print("CSV Output:")
+        joined: str = "".join(s for _, s in data)
+        print(joined)
+
+
+class JSONExport(ExportPlugin):
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+        pass
+
+
 class DataStream:
     def __init__(self) -> None:
         self.num_proc: NumericProcessor | None = None
         self.text_proc: TextProcessor | None = None
         self.log_proc: LogProcessor | None = None
+        self.proc_list: list[DataProcessor] = [num_proc, text_proc, log_proc]
 
     def register_processor(self, proc: DataProcessor) -> None:
         if isinstance(proc, NumericProcessor):
@@ -125,6 +143,7 @@ class DataStream:
         for x in stream:
             if self.num_proc and self.num_proc.validate(x):
                 self.num_proc.ingest(x)
+                self.proc = self.num_proc
             elif self.text_proc and self.text_proc.validate(x):
                 self.text_proc.ingest(x)
             elif self.log_proc and self.log_proc.validate(x):
@@ -135,7 +154,11 @@ class DataStream:
                 )
 
     def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
-    #TODO: comportement de cette fonction
+        out_to_process: list[tuple[int, str]] = []
+        for proc in self.proc_list:
+            for _ in range(0, min(nb, len(proc.data))):
+                out_to_process.append(proc.output())
+        plugin.process_output(out_to_process)
 
     def print_processors_stats(self) -> None:
         if not self.num_proc and not self.text_proc and not self.log_proc:
@@ -160,12 +183,6 @@ class DataStream:
             )
 
 
-class ExportPlugin(typing.Protocol):
-    def process_output(self, data: list[tuple[int, str]]) -> None:
-    #TODO: comportement de cette fonction
-
-
-
 if __name__ == "__main__":
     print("=== Code Nexus - Data Stream ===")
     print()
@@ -174,9 +191,13 @@ if __name__ == "__main__":
     print("== DataStream statistics ==")
     data_stream.print_processors_stats()
     print()
-    print("Registering Numeric Processor")
+    print("Registering Processors")
     num_proc: NumericProcessor = NumericProcessor()
+    text_proc: TextProcessor = TextProcessor()
+    log_proc: LogProcessor = LogProcessor()
     data_stream.register_processor(num_proc)
+    data_stream.register_processor(text_proc)
+    data_stream.register_processor(log_proc)
     print()
     data: list[typing.Any] = [
         "Hello world",
@@ -193,31 +214,5 @@ if __name__ == "__main__":
     ]
     print(f"Send first batch of data on stream: {data}")
     data_stream.process_stream(data)
-    print("== DataStream statistics ==")
-    data_stream.print_processors_stats()
-    print()
-    print("Registering other data processors")
-    text_proc: TextProcessor = TextProcessor()
-    log_proc: LogProcessor = LogProcessor()
-    data_stream.register_processor(text_proc)
-    data_stream.register_processor(log_proc)
-    print("Send the same batch again")
-    data_stream.process_stream(data)
-    print("== DataStream statistics ==")
-    data_stream.print_processors_stats()
-    print()
-    consume_num: int = 3
-    consume_text: int = 2
-    consume_log: int = 1
-    print(
-        "Consume some elements from the data processors: Numeric "
-        f"{consume_num}, Text {consume_text}, Log {consume_log}"
-    )
-    for _ in range(0, consume_num):
-        num_proc.output()
-    for _ in range(0, consume_text):
-        text_proc.output()
-    for _ in range(0, consume_log):
-        log_proc.output()
     print("== DataStream statistics ==")
     data_stream.print_processors_stats()
