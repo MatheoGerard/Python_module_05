@@ -30,7 +30,9 @@ class NumericProcessor(DataProcessor):
     def validate(self, data: typing.Any) -> bool:
         if isinstance(data, (float, int)):
             return True
-        elif isinstance(data, list) and all(isinstance(x, (int, float)) for x in data):
+        elif isinstance(data, list) and all(
+            isinstance(x, (int, float)) for x in data
+        ):
             return True
         else:
             return False
@@ -83,7 +85,9 @@ class LogProcessor(DataProcessor):
             return True
         elif isinstance(data, list) and all(
             isinstance(x, dict)
-            and all(isinstance(k, str) and isinstance(v, str) for k, v in x.items())
+            and all(
+                isinstance(k, str) and isinstance(v, str) for k, v in x.items()
+            )
             for x in data
         ):
             return True
@@ -106,14 +110,14 @@ class ExportPlugin(typing.Protocol):
     def process_output(self, data: list[tuple[int, str]]) -> None: ...
 
 
-class CSVExport(ExportPlugin):
+class CSVExport:
     def process_output(self, data: list[tuple[int, str]]) -> None:
         print("CSV Output:")
         csv_string = ",".join(name_val for _, name_val in data)
         print(csv_string)
 
 
-class JSONExport(ExportPlugin):
+class JSONExport:
     def process_output(self, data: list[tuple[int, str]]) -> None:
         print("\nJSON Output:")
         if not data:
@@ -161,7 +165,9 @@ class DataStream:
             elif self.log_proc and self.log_proc.validate(x):
                 self.log_proc.ingest(x)
             else:
-                print(f"DataStream error - Can't process element in stream: {x}")
+                print(
+                    f"DataStream error - Can't process element in stream: {x}"
+                )
 
     def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
         out_to_process: list[tuple[int, str]] = []
@@ -237,14 +243,22 @@ if __name__ == "__main__":
     data_stream.print_processors_stats()
     print()
     print(
-        "Send another batch of data: [21, ['I love AI', 'LLMs are wonderful', 'Stay healthy'], [{'log_level': 'ERROR', 'log_message': '500 server crash'}, {'log_level': 'NOTICE', 'log_message': 'Certificate expires in 10 days'}], [32, 42, 64, 84, 128, 168], 'World hello']"
+        "Send another batch of data: [21, ['I love AI', 'LLMs are wonderful', "
+        "'Stay healthy'], "
+        "[{'log_level': 'ERROR', 'log_message': '500 server crash'}, "
+        "{'log_level': 'NOTICE', 'log_message': "
+        "'Certificate expires in 10 days'}], "
+        "[32, 42, 64, 84, 128, 168], 'World hello']"
     )
     data2: list[typing.Any] = [
         21,
         ["I love AI", "LLMs are wonderful", "Stay healthy"],
         [
             {"log_level": "ERROR", "log_message": "500 server crash"},
-            {"log_level": "NOTICE", "log_message": "Certificate expires in 10 days"},
+            {
+                "log_level": "NOTICE",
+                "log_message": "Certificate expires in 10 days",
+            },
         ],
         [32, 42, 64, 84, 128, 168],
         "World hello",
