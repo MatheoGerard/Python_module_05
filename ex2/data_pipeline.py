@@ -115,7 +115,16 @@ class CSVExport(ExportPlugin):
 
 class JSONExport(ExportPlugin):
     def process_output(self, data: list[tuple[int, str]]) -> None:
-        pass
+        print("\nJSON Output:")
+        if not data:
+            print("{}")
+            return
+        json_elements = []
+        for id_val, name_val in data:
+            element = f'"item_{id_val}": "{name_val}"'
+            json_elements.append(element)
+        json_string = "{" + ", ".join(json_elements) + "}"
+        print(json_string)
 
 
 class DataStream:
@@ -242,5 +251,12 @@ if __name__ == "__main__":
     ]
     print()
     data_stream.process_stream(data2)
+    print("== DataStream statistics ==")
+    data_stream.print_processors_stats()
+    print()
+    print("Send 5 processed data from each processor to a JSON plugin:")
+    plugin_json: JSONExport = JSONExport()
+    data_stream.output_pipeline(5, plugin_json)
+    print()
     print("== DataStream statistics ==")
     data_stream.print_processors_stats()
