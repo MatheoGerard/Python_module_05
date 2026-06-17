@@ -30,9 +30,7 @@ class NumericProcessor(DataProcessor):
     def validate(self, data: typing.Any) -> bool:
         if isinstance(data, (float, int)):
             return True
-        elif isinstance(data, list) and all(
-            isinstance(x, (int, float)) for x in data
-        ):
+        elif isinstance(data, list) and all(isinstance(x, (int, float)) for x in data):
             return True
         else:
             return False
@@ -85,9 +83,7 @@ class LogProcessor(DataProcessor):
             return True
         elif isinstance(data, list) and all(
             isinstance(x, dict)
-            and all(
-                isinstance(k, str) and isinstance(v, str) for k, v in x.items()
-            )
+            and all(isinstance(k, str) and isinstance(v, str) for k, v in x.items())
             for x in data
         ):
             return True
@@ -113,8 +109,8 @@ class ExportPlugin(typing.Protocol):
 class CSVExport(ExportPlugin):
     def process_output(self, data: list[tuple[int, str]]) -> None:
         print("CSV Output:")
-        joined: str = "".join(s for _, s in data)
-        print(joined)
+        csv_string = ",".join(name_val for _, name_val in data)
+        print(csv_string)
 
 
 class JSONExport(ExportPlugin):
@@ -127,15 +123,22 @@ class DataStream:
         self.num_proc: NumericProcessor | None = None
         self.text_proc: TextProcessor | None = None
         self.log_proc: LogProcessor | None = None
-        self.proc_list: list[DataProcessor] = [num_proc, text_proc, log_proc]
+        self.proc_list: list[DataProcessor | None] = [
+            self.num_proc,
+            self.text_proc,
+            self.log_proc,
+        ]
 
     def register_processor(self, proc: DataProcessor) -> None:
         if isinstance(proc, NumericProcessor):
             self.num_proc = proc
+            self.proc_list.append(proc)
         elif isinstance(proc, TextProcessor):
             self.text_proc = proc
+            self.proc_list.append(proc)
         elif isinstance(proc, LogProcessor):
             self.log_proc = proc
+            self.proc_list.append(proc)
         else:
             raise Exception("This type of proc is not supported")
 
@@ -149,16 +152,16 @@ class DataStream:
             elif self.log_proc and self.log_proc.validate(x):
                 self.log_proc.ingest(x)
             else:
-                print(
-                    f"DataStream error - Can't process element in stream: {x}"
-                )
+                print(f"DataStream error - Can't process element in stream: {x}")
 
     def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
         out_to_process: list[tuple[int, str]] = []
         for proc in self.proc_list:
-            for _ in range(0, min(nb, len(proc.data))):
-                out_to_process.append(proc.output())
-        plugin.process_output(out_to_process)
+            if proc:
+                for _ in range(0, min(nb, len(proc.data))):
+                    out_to_process.append(proc.output())
+                plugin.process_output(out_to_process)
+                out_to_process.clear()
 
     def print_processors_stats(self) -> None:
         if not self.num_proc and not self.text_proc and not self.log_proc:
@@ -214,5 +217,30 @@ if __name__ == "__main__":
     ]
     print(f"Send first batch of data on stream: {data}")
     data_stream.process_stream(data)
+    print("== DataStream statistics ==")
+    data_stream.print_processors_stats()
+    print()
+    print("Send 3 processed data from each processor to a CSV plugin:")
+    plugin_csv: CSVExport = CSVExport()
+    data_stream.output_pipeline(3, plugin_csv)
+    print()
+    print("== DataStream statistics ==")
+    data_stream.print_processors_stats()
+    print()
+    print(
+        "Send another batch of data: [21, ['I love AI', 'LLMs are wonderful', 'Stay healthy'], [{'log_level': 'ERROR', 'log_message': '500 server crash'}, {'log_level': 'NOTICE', 'log_message': 'Certificate expires in 10 days'}], [32, 42, 64, 84, 128, 168], 'World hello']"
+    )
+    data2: list[typing.Any] = [
+        21,
+        ["I love AI", "LLMs are wonderful", "Stay healthy"],
+        [
+            {"log_level": "ERROR", "log_message": "500 server crash"},
+            {"log_level": "NOTICE", "log_message": "Certificate expires in 10 days"},
+        ],
+        [32, 42, 64, 84, 128, 168],
+        "World hello",
+    ]
+    print()
+    data_stream.process_stream(data2)
     print("== DataStream statistics ==")
     data_stream.print_processors_stats()
